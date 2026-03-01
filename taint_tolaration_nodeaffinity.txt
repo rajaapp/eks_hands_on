@@ -1,0 +1,110 @@
+Taint/toleration/node afinity
+----------------------
+🔹 Step 1: Label the Node
+kubectl label node ip-10-0-1-15 environment=prod
+🔹 Add Taint to the Node
+kubectl taint node ip-10-0-1-15 dedicated=prod:NoSchedule
+🔹to check the labels
+kubectl get nodes --show-labels
+🔹 to remove the Taint from the node
+kubectl taint node <node-name> dedicated=prod:NoSchedule-
+🔹 to check the taint in the node
+kubectl describe node <node-name> | grep Taints
+
+ ---------
+deplyment
+---------
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: prod-app
+  namespace: prod
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: prod-app
+  template:
+    metadata:
+      labels:
+        app: prod-app
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: environment
+                    operator: In
+                    values:
+                      - prod
+      tolerations:
+        - key: "dedicated"
+          operator: "Equal"
+          value: "prod"
+          effect: "NoSchedule"
+      containers:
+        - name: nginx
+          image: nginx:1.25
+          ports:
+            - containerPort: 80
+          resources:
+            requests:
+              cpu: "200m"
+              memory: "256Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+----------------------------------------------------------
+pod
+----
+apiVersion: v1
+kind: Pod
+metadata:
+  name: test-pod
+  namespace: prod
+spec:
+  containers:
+    - name: nginx
+      image: nginx:1.25
+---------------------------------------------------------
+##########tested working fine#############
+---------------------------------------------------------
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: prod-app
+  namespace: prod
+spec:
+  replicas: 4
+  selector:
+    matchLabels:
+      app: prod-app
+  template:
+    metadata:
+      labels:
+        app: prod-app
+    spec:
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 50
+              preference:
+                matchExpressions:
+                  - key: environment
+                    operator: In
+                    values:
+                      - prod
+            - weight: 50
+              preference:
+                matchExpressions:
+                  - key: test
+                    operator: In
+                    values:
+                      - kk        
+      containers:
+        - name: nginx
+          image: nginx:1.25
+          ports:
+            - containerPort: 80
+--------------------------------------------------
