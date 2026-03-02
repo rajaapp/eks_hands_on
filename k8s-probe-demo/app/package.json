@@ -1,0 +1,9 @@
+{
+  "name": "probe-demo",
+  "version": "1.0.0",
+  "description": "Kubernetes Probe Demo",
+  "main": "server.js",
+  "dependencies": {
+    "express": "^4.18.2"
+  }
+}
