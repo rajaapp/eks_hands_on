@@ -1,0 +1,50 @@
+🚀 How to Run End-to-End
+Step 1 — Build & Push Image
+docker build -t <your-dockerhub-username>/probe-demo:1.0 .
+docker push <your-dockerhub-username>/probe-demo:1.0
+Step 2 — Create Namespace
+kubectl create ns banking-prod
+Step 3 — Deploy
+kubectl apply -f deployment.yaml
+kubectl apply -f service.yaml
+🧪 Real-Time Testing
+🔎 Watch Startup Behavior
+kubectl get pods -n banking-prod -w
+
+Startup takes 30 sec.
+
+Until then:
+
+Pod not ready
+
+No traffic
+
+🔴 Test Readiness Failure
+kubectl port-forward svc/probe-service -n banking-prod 8080:80
+
+Then:
+
+http://localhost:8080/simulate-db-down
+
+Now check:
+
+kubectl get endpoints probe-service -n banking-prod
+
+Pod disappears from endpoints.
+
+🔥 Test Liveness Failure
+http://localhost:8080/simulate-dead
+
+Then:
+
+kubectl get pods -n banking-prod
+
+Restart count increases.
+
+🎯 What This Demonstrates in Interview
+
+You can say:
+
+I built a probe-enabled demo application where I simulate DB failure and internal deadlock, and validated readiness removes endpoints while liveness triggers restart. I also validated startup probe prevents premature restarts during initialization.
+
+That is a 10/10 senior-level answer.
